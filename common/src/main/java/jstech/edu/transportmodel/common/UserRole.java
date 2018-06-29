@@ -1,0 +1,6 @@
+package jstech.edu.transportmodel.common;
+
+//TODO - THIS IS TEMPORARY. WE SHOULD MOVE USER ROLES TO SPRING FRAMEWORK AT SOME POINT
+public enum UserRole {
+    DRIVER, PARENT, TRANSPORT_INCHARGE, TEACHER, STUDENT
+}

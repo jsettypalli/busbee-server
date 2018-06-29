@@ -1,0 +1,141 @@
+<html>
+<head>
+    <script type="text/javascript" src="js/jquery-1.11.2.js"> </script>
+    <script type="text/javascript" src="js/jquery-ui.min.js"> </script>
+
+    <script src="js/sockjs.min.js"></script>
+    <script src="js/stomp.min.js"></script>
+</head>
+
+<body>
+
+<span>SUBSCRIBE BUS 1: </span>
+<br/>
+<span> Connection Status: </span><span id="conn_status"></span>
+<br/>
+<span> Error: </span><span id="err"></span>
+<br/>
+
+<span> receive count: </span><span id="receive_count"></span>
+<br/>
+<span> receive Coordinates:</span><span id="receive_coord"></span>
+<br/>
+
+<span>SUBSCRIBE BUS 2: </span>
+<br/>
+<span> Connection Status: </span><span id="conn_status1"></span>
+<br/>
+<span> receive count: </span><span id="receive_count1"></span>
+<br/>
+<span> receive Coordinates:</span><span id="receive_coord1"></span>
+<br/>
+
+<br/>
+<br/>
+<div id="responses"></div>
+
+<script>
+
+    var map;
+    var infoWindow;
+    var marker;
+
+    var receivecount = 0;
+    var receiveposition = {};
+
+    var tripId = 2;
+    var busId = 1;
+
+    function connect() {
+        var socket = new SockJS('/transportws');
+        stompClient = Stomp.over(socket);
+        stompClient.connect({}, function (frame) {
+            document.getElementById("conn_status").innerHTML = "Success";
+            /*
+            for(var i=1; i<=15; i++) {
+                stompClient.subscribe('/subscribe/position/1/'+i, function (position) {
+                    showPosition(position.body);
+                });
+            }
+            */
+
+            stompClient.subscribe('/subscribe/busposition/'+tripId+'/'+busId, function (position) {
+                showPosition(position.body);
+            });
+
+        });
+    }
+
+    function showPosition1(position_txt) {
+        receivecount = receivecount + 1;
+        document.getElementById("receive_coord").innerHTML = position_txt;
+        document.getElementById("receive_count").innerHTML = receivecount;
+        showPosition(position_txt);
+    }
+
+    function showPosition2(position_txt) {
+        receivecount = receivecount + 1;
+        document.getElementById("receive_coord1").innerHTML = position_txt;
+        document.getElementById("receive_count1").innerHTML = receivecount;
+        showPosition(position_txt);
+    }
+
+    function showPosition(position_txt) {
+        var curhtml = document.getElementById("responses").innerHTML;
+
+        /* */
+        var positionobj = JSON.parse(position_txt);
+        var myLatLng = {lat: Number(positionobj.latitude), lng: Number(positionobj.longitude)};
+
+        //infoWindow.setPosition(myLatLng);
+        //infoWindow.setContent('Location found.');
+        //infoWindow.open(map);
+
+        curhtml = curhtml + "<span>" + positionobj.message + "</span><br/>";
+        document.getElementById("responses").innerHTML = curhtml;
+    }
+
+    function getMyPosition() {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(getGeoPosition, handleError);
+        } else {
+            alert("Geolocation is not supported by this browser.");
+            document.getElementById("err").innerHTML = "Geolocation is not supported by this browser.";
+        }
+    }
+
+    function getGeoPosition(position) {
+        var latitude = position.coords.latitude;
+        var longitude = position.coords.longitude;
+        var myLatLng = {lat: latitude, lng: longitude};
+    }
+
+    function handleError() {
+        var errelem = document.getElementById("err");
+        switch(error.code) {
+            case error.PERMISSION_DENIED:
+                alert("User denied the request for Geolocation.");
+                errelem.innerHTML = "User denied the request for Geolocation."
+                break;
+            case error.POSITION_UNAVAILABLE:
+                alert("Location information is unavailable.");
+                errelem.innerHTML = "Location information is unavailable."
+                break;
+            case error.TIMEOUT:
+                alert("The request to get user location timed out.");
+                errelem.innerHTML = "The request to get user location timed out."
+                break;
+            case error.UNKNOWN_ERROR:
+                alert("An unknown error occurred.");
+                errelem.innerHTML = "An unknown error occurred."
+                break;
+        }
+    }
+
+    connect();
+    getMyPosition();
+
+</script>
+</body>
+
+</html>

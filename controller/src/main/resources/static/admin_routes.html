@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Bus Routes</title>
+    <script type="text/javascript" src="js/jquery-1.11.2.js"> </script>
+    <script type="text/javascript" src="js/jquery-ui.min.js"> </script>
+</head>
+<body>
+    <form id="optimal_route_id" name="optimal_route">
+        <div>
+            <div>
+                <input id="generate_optimal_route" type="button" name="generate_optimal_route"
+                       onclick="onOptimalRouteRequest();" value="Generate Optimal Routes" />
+                <input id="optimal_route" type="button" name="optimal_route"
+                       onclick="onGetOptimalRoutes();" value="Get Optimal Routes" />
+            </div>
+        </div>
+        <br/>
+        <div id="optimal_request_result">     </div>
+
+        <div id="optimal_routes">
+            <div id="routes"></div>
+            <div id="routes_text" style="margin:10px;"></div>
+            <div id="routes_map"></div>
+        </div>
+    </form>
+
+    <script>
+
+        var schoolId = 1;
+        var tripName = "DAILY";
+        var pickupSchedule = " 0 7 * * 1-5";
+        var dropoffSchedule = " 0 3 * * 1-5";
+        var tripId = 1;
+        var transportSchedules = new Array();
+        var routes = new Array();
+        var routeMap = {};
+
+        var url = '/app/routes/generate?school_id=' + schoolId + '&route_name=' + tripName +
+                    '&pickup_schedule=' + pickupSchedule + '&dropoff_schedule=' + dropoffSchedule;
+
+        function onOptimalRouteRequest() {
+            $.ajax( {
+                url: encodeURI(url),
+                type: 'POST',
+                async: true,
+                success: onOptimalRouteRequestSuccess,
+                error: onOptimalRouteRequestFailure
+            } );
+        }
+
+        function onOptimalRouteRequestSuccess(response) {
+            if(response == null) {
+                alert("no trip is returned");
+                return;
+            }
+            var divelem = document.getElementById("optimal_request_result");
+            divelem.innerHTML = "<span>Routes generated successfully</span>";
+
+            //onGetOptimalRoutes();
+            onOptimalRoutesReceiveSuccess(response);
+        }
+
+        function onGetOptimalRoutes() {
+            $.ajax( {
+                url: '/app/routes?trip_id=' + tripId,
+                type: 'GET',
+                async: true,
+                success: onOptimalRoutesReceiveSuccess,
+                error: onOptimalRoutesReceiveFailure
+            } );
+        }
+
+        function onOptimalRoutesReceiveSuccess(response) {
+            if(response == null) {
+                alert("no trip was returned");
+                return;
+            }
+            var name = response.name;
+            var tmpRouteMap = response.busRoutes;
+            var i = 0;
+            for(var bus in tmpRouteMap) {
+                var busRoute = tmpRouteMap[bus];
+                /* TODO ---
+                    "bus" is represented as string object in tmpRouteMap and not as SchoolBus object.
+                    It is actually value returned by SchoolBus.toString() method.
+                    Spent some time to get SchoolBus object, but wasn't successful.
+                    So leaving it as string for now. The impact is that route names won't have bug registration number in the name
+                    Rest of the functionality should work fine.
+                */
+                var routeName = "Route" + (i+1) + " - " + bus.registrationNumber;
+                routes[i] = routeName;
+                routeMap[routeName] = busRoute;
+                i++;
+            }
+
+            generateRoutesDropdownDiv(routes);
+            generateRouteText(routes[0]);
+            generateRouteMap(routes[0]);
+        }
+
+        function generateRoutesDropdownDiv(routes) {
+            var str = '<select id="route" name="route" onchange="onRouteChange()"> ';
+            for(var i=0; i<routes.length; i++) {
+                str += '<option value="' + routes[i] + '"> ' + routes[i] + '</option> ';
+            }
+            str += '</select>';
+            document.getElementById("routes").innerHTML = str;
+        }
+
+        function onRouteChange() {
+            var routeName = $('#route').val();
+            alert("route-name: " + routeName);
+            generateRouteMap(routeName);
+        }
+
+        function generateRouteText(routeName) {
+            var route = routeMap[routeName];
+            var str = "<span>";
+            str += '<span> 1. ' + route.startingPoint.name + '</span>';
+            str += '<span> --> </span>';
+
+            for(var i=0; i<route.busStops.length; i++) {
+                str += '<span>' + route.busStops[i].name + '</span>';
+                str += '<br/>';
+                str += '<span >' + (i+2) + '. ' + route.busStops[i].address + '</span>';
+                str += '<span> --> </span>';
+            }
+            str += '<span >' + route.destination.address + '</span>';
+            str += '</span>';
+
+            document.getElementById("routes_text").innerHTML = str;
+        }
+
+        function generateRouteMap(routeName) {
+            var route = routeMap[routeName];
+            var url = "https://www.google.com/maps/embed/v1/directions?key=AIzaSyBOa2lU1d3jHGjok5AxDSUG8ipzEcpXLlc";
+            var str = '<iframe  width="1000"  height="650"  frameborder="0" style="border:0" src="' + url;
+            var startingPoint = route.startingPoint;
+            var startLat = startingPoint.location.latitude;
+            var startLong = startingPoint.location.longitude;
+            str += '&origin=' + startLat + ',' + startLong;
+
+            str += '&destination=' + route.destination.location.latitude + ',' + route.destination.location.longitude;
+            str += '&waypoints=';
+
+            for(var i=0; i<route.busStops.length; i++) {
+                str += route.busStops[i].location.latitude + ',' + route.busStops[i].location.longitude;
+
+                if(i != route.busStops.length-1) {
+                    str += '|';
+                }
+            }
+            str += '&maptype=roadmap&zoom=15" allowfullscreen>';
+            str += '</iframe>';
+
+            document.getElementById("routes_map").innerHTML = str;
+        }
+
+        function onOptimalRoutesReceiveFailure(error) {
+            var divelem = document.getElementById("optimal_request_result");
+            divelem.innerHTML = "<span>" +  JSON.stringify(error) + "</span>";
+        }
+
+        function onOptimalRouteRequestFailure(error) {
+            var divelem = document.getElementById("optimal_request_result");
+            divelem.innerHTML = "<span>" +  JSON.stringify(error) + "</span>";
+        }
+
+    </script>
+</body>
+</html>

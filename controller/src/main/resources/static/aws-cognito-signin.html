@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Bus Routes</title>
+    <script type="text/javascript" src="js/jquery-1.11.2.js"> </script>
+    <script type="text/javascript" src="js/jquery-ui.min.js"> </script>
+    <script type="text/javascript" src="js/aws-cognito-sdk.min.js"> </script>
+    <script type="text/javascript" src="js/amazon-cognito-identity.min.js"> </script>
+</head>
+<body>
+<form id="sign_in_form" name="sign_in_form">
+    <input type="button" name="sign_in_button" id="sign_in_button" value="sign-in" onclick="onSignInClick();"/>
+    <p>
+    <input type="button" name="sign_in_button" id="sign_out_button" value="sign-out" onclick="onSignOutClick();"/>
+    </p>
+
+    <p>
+    <input type="button" name="submit" id="submit" value="submit" onclick="onSubmitClick();"/>
+    </p>
+
+    <p>
+        <input type="button" name="running_buses" id="running_buses" value="Get Running Buses" onclick="onGetRunningBusesClick();"/>
+    </p>
+
+    <p>
+        <input type="button" name="add_device" id="add_device" value="Add Device" onclick="onAddDeviceClick();"/>
+    </p>
+
+    <p>
+        <input type="button" name="add_device" id="update_device" value="Update Device" onclick="onUpdateDeviceClick();"/>
+    </p>
+
+    <p>
+        <input type="button" name="add_device" id="update_device_endpointarn" value="Update Device EndpointARN" onclick="onUpdateDeviceEnbPointArnClick();"/>
+    </p>
+    <p>
+        <input type="button" name="remove_device" id="remove_device" value="Remove Device" onclick="onRemoveDeviceClick();"/>
+    </p>
+
+</form>
+
+<script>
+
+    var completeJWT;
+    var accessJWT;
+    var idTokenJWT;
+    /*Username : 'jitendra@jstech.in',*/
+
+    // Uma var appToken = 'cHIMAgSaweM:APA91bHmxXmnW5TLtYr2spdGbfhYR4axwDCeyso0Nb1FItqui1xMa3QSxIQ4ZjQaaB0ICvEdq_NnM7QorcTnmgZlqKMLUGGlXJWAI6_yPi-zW0xeWE3VTVz0w-0Udhobti1FzZmcK9j7';
+
+    // Mathu
+    var appToken = 'eBkvam-N_Eg:APA91bFkwoUpOpNdwLzBWixvBLyMEOKAJMi_t5l2ig9Ed_bMIVrrCa3gknl0m7hdqjezR2SYSpqdj56GrLKhLBLEJPsGEETer6tZD3mVV6xKqAO-BNKValZqu8fG47vY4yz_4c2ti450'
+
+    //var userName = 'driver1@email.com';
+    //var userName = 'parent1@email.com';
+    //var userName = 'transport_incharge1@email.com';
+
+    //var password = 'Test1234';
+
+    var userName = 'jitendra_driver1@email.com';
+    var password = 'Jitendra_Driver1';
+
+    var authenticationData = {
+        Username : userName,
+        Password : password,
+    };
+    var authenticationDetails = new AmazonCognitoIdentity.AuthenticationDetails(authenticationData);
+
+    var poolData = {
+        UserPoolId : 'ap-south-1_9V9g6m8sU',
+        ClientId : '13qoh7anskpi8ctbft9ob4hja6'
+    };
+
+    var userPool = new AmazonCognitoIdentity.CognitoUserPool(poolData);
+    var userData = {
+        Username : userName,
+        Pool : userPool
+    };
+
+    var cognitoUser = new AmazonCognitoIdentity.CognitoUser(userData);
+
+     function onSignInClick() {
+        cognitoUser.authenticateUser(authenticationDetails, {
+            onSuccess: function (result) {
+                completeJWT = JSON.stringify(result);
+                console.log('completeJWT: ' + completeJWT);
+
+                accessJWT = JSON.stringify(result.getAccessToken());
+                console.log('access jwt: ' + accessJWT);
+
+                /*Use the idToken for Logins Map when Federating User Pools with identity pools or when passing through an Authorization Header to an API Gateway Authorizer*/
+                idTokenJWT = result.getIdToken().getJwtToken();
+                console.log('idTokenJWT: ' + idTokenJWT);
+            },
+
+            onFailure: function(err) {
+                alert(err);
+            },
+        });
+     }
+
+     function onSignOutClick() {
+        if (cognitoUser != null) {
+          cognitoUser.signOut();
+          alert("user signed-out");
+        }
+     }
+
+     function onSubmitClick() {
+     var url = "/app/testauth";
+     $.ajax( {
+                url: encodeURI(url),
+                type: 'GET',
+                async: true,
+                success: onSubmitSuccess,
+                error: onSubmitFailure,
+                beforeSend: function (xhr) {
+                    xhr.setRequestHeader("Authorization", "Bearer " + idTokenJWT);
+                }
+            } );
+     }
+
+     function onSubmitSuccess(response) {
+        alert("Success: " + JSON.stringify(response));
+     }
+
+     function onSubmitFailure(error) {
+        alert("Error: " + JSON.stringify(error));
+     }
+
+     function onGetRunningBusesClick() {
+        var url = "/app/get_running_buses";
+        $.ajax( {
+            url: encodeURI(url),
+            type: 'GET',
+            async: true,
+            success: onGetRunningBusesSuccess,
+            error: onGetRunningBusesFailure,
+            beforeSend: function (xhr) {
+                xhr.setRequestHeader("Authorization", "Bearer " + idTokenJWT);
+            }
+        } );
+     }
+
+     function onGetRunningBusesSuccess(response) {
+        alert("Success: " + JSON.stringify(response));
+     }
+
+     function onGetRunningBusesFailure(error) {
+        alert("Error: " + JSON.stringify(error));
+     }
+
+     function onAddDeviceClick() {
+         var url = "/app/devices?platform=android&device_id=test&application_token="+appToken;
+            $.ajax( {
+                url: encodeURI(url),
+                type: 'POST',
+                async: true,
+                success: onAddDeviceSuccess,
+                error: onAddDeviceFailure,
+                beforeSend: function (xhr) {
+                    xhr.setRequestHeader("Authorization", "Bearer " + idTokenJWT);
+                }
+            } );
+     }
+
+     function onAddDeviceSuccess(response) {
+        alert("Success: " + JSON.stringify(response));
+     }
+
+     function onAddDeviceFailure(error) {
+        alert("Error: " + JSON.stringify(error));
+     }
+
+     function onUpdateDeviceClick() {
+        var url = "/app/devices?platform=android&device_id=test&application_token="+appToken;
+            $.ajax( {
+                url: encodeURI(url),
+                type: 'PUT',
+                async: true,
+                success: onAddDeviceSuccess,
+                error: onAddDeviceFailure,
+                beforeSend: function (xhr) {
+                    xhr.setRequestHeader("Authorization", "Bearer " + idTokenJWT);
+                }
+            } );
+     }
+
+
+    function onUpdateDeviceEnbPointArnClick() {
+        var url = "/app/devices?platform=android&device_id=test&endpointarn=Xxxxxxyyy";
+            $.ajax( {
+                url: encodeURI(url),
+                type: 'PUT',
+                async: true,
+                success: onAddDeviceSuccess,
+                error: onAddDeviceFailure,
+                beforeSend: function (xhr) {
+                    xhr.setRequestHeader("Authorization", "Bearer " + idTokenJWT);
+                }
+            } );
+     }
+     function onRemoveDeviceClick() {
+        var url = "/app/devices?platform=android&device_id=test&application_token=test1";
+            $.ajax( {
+                url: encodeURI(url),
+                type: 'DELETE',
+                async: true,
+                success: onAddDeviceSuccess,
+                error: onAddDeviceFailure,
+                beforeSend: function (xhr) {
+                    xhr.setRequestHeader("Authorization", "Bearer " + idTokenJWT);
+                }
+            } );
+     }
+
+</script>
+</body>
+</html>

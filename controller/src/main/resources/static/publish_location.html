@@ -1,0 +1,149 @@
+<html>
+<head>
+    <script type="text/javascript" src="js/jquery-1.11.2.js"> </script>
+    <script type="text/javascript" src="js/jquery-ui.min.js"> </script>
+
+    <script src="js/sockjs.min.js"></script>
+    <script src="js/stomp.min.js"></script>
+</head>
+
+<body>
+<span>PUBLISH: </span>
+<br/>
+<span> Connection Status: </span><span id="conn_status"></span>
+<br/>
+<span> Error Msg : </span><span id="senderr"></span>
+<br/>
+<span> send count: </span><span id="send_count"></span>
+<br/>
+<span> sent Coordinates:</span><span id="send_coord"></span>
+<br/>
+<br/>
+
+<script>
+    var sendcount = 0;
+    var sendposition = {};
+    var increment = 0.0001;
+
+    var tripId = 2;
+    var busId = 1;
+
+    var curIndex = -1;
+    var myLatLng1 = {lat: 17.467112, lng: 78.371105};
+    var myLatLng2 = {lat: 17.468709, lng: 78.370074};
+    var myLatLng3 = {lat: 17.466696, lng: 78.367361};
+    var myLatLng4 = {lat: 17.459420, lng: 78.366270};
+    var myLatLng5 = {lat: 17.453597, lng: 78.366742};
+    var myLatLng6 = {lat: 17.454906, lng: 78.370133};
+    var myLatLng7 = {lat: 17.456698, lng: 78.376726};
+    var myLatLng8 = {lat: 17.466546, lng: 78.374916};
+    var myLatLng9 = {lat: 17.468541, lng: 78.376289};
+    var myLatLng10 = {lat: 17.466533, lng: 78.376466};
+    var myLatLng11 = {lat: 17.464334, lng: 78.375531};
+    var myLatLng12 = {lat: 17.466342, lng: 78.371881};
+    var myLatLng13 = {lat:17.463801, lng: 78.369735};
+    var myLatLng14 = {lat: 17.462847, lng: 78.369934};
+    var myLatLng15 = {lat: 17.464306, lng: 78.368790};
+
+    var latlonglist = [ myLatLng1, myLatLng2,myLatLng3,myLatLng4,myLatLng5,myLatLng6,myLatLng7,myLatLng8,myLatLng9,
+                                                    myLatLng10,myLatLng11,myLatLng12,myLatLng13,myLatLng14,myLatLng15];
+
+    function connect() {
+        var socket = new SockJS('/transportws');
+        stompClient = Stomp.over(socket);
+        stompClient.connect({}, function (frame) {
+            document.getElementById("conn_status").innerHTML = "Success";
+        });
+    }
+
+    function sendPosition() {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(sendGeoPosition, handleError);
+        } else {
+            alert("Geolocation is not supported by this browser.");
+            document.getElementById("senderr").innerHTML = "Geolocation is not supported by this browser.";
+        }
+    }
+
+    function sendMockPositions() {
+        curIndex = curIndex + 1;
+        sendGeoPosition(latlonglist[curIndex]);
+    }
+
+    function sendGeoPosition(position) {
+        /*
+        sendcount = sendcount + 1;
+        if(busId == 1) {
+            busId = 2;
+        } else {
+            busId = 1;
+        }
+
+        var newlat = position.coords.latitude + increment * sendcount;
+        var newlong = position.coords.longitude + increment * sendcount;
+        */
+
+        var localPosition = {};
+        localPosition.busId = busId;
+        localPosition.latitude = position.lat;
+        localPosition.longitude = position.lng;
+
+        var localPositiontxt = JSON.stringify(localPosition);
+
+        document.getElementById("send_coord").innerHTML = localPositiontxt;
+        document.getElementById("send_count").innerHTML = sendcount;
+
+        stompClient.send("/publish/busposition/"+tripId+"/"+busId, {}, JSON.stringify(localPosition));
+    }
+
+    function handleError(error) {
+        var errelem = document.getElementById("senderr");
+        switch(error.code) {
+            case error.PERMISSION_DENIED:
+                alert("User denied the request for Geolocation.");
+                errelem.innerHTML = "User denied the request for Geolocation."
+                break;
+            case error.POSITION_UNAVAILABLE:
+                alert("Location information is unavailable.");
+                errelem.innerHTML = "Location information is unavailable."
+                break;
+            case error.TIMEOUT:
+                alert("The request to get user location timed out.");
+                errelem.innerHTML = "The request to get user location timed out."
+                break;
+            case error.UNKNOWN_ERROR:
+                alert("An unknown error occurred.");
+                errelem.innerHTML = "An unknown error occurred."
+                break;
+        }
+    }
+
+    function sendPositionOld() {
+        sendcount = sendcount + 1;
+        latitude = latitude + 0.00001;
+        longitude = longitude + 0.00001;
+
+        if(busId == 1) {
+            busId = 2;
+        } else {
+            busId = 1;
+        }
+
+        var tempobj = {};
+        tempobj.busId = busId;
+        tempobj.latitude = latitude;
+        tempobj.longitude = longitude;
+        var tempobjtxt = JSON.stringify(tempobj);
+
+        document.getElementById("send_coord").innerHTML = tempobjtxt;
+        document.getElementById("send_count").innerHTML = sendcount;
+
+        stompClient.send("/publish/busposition/"+tripId+"/"+busId, {}, JSON.stringify(tempobj));
+    }
+
+    connect();
+    setInterval(sendMockPositions, 10000);
+</script>
+</body>
+
+</html>

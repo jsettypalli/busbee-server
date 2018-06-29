@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Upload data</title>
+    <script type="text/javascript" src="js/jquery-1.11.2.js"> </script>
+    <script type="text/javascript" src="js/jquery-ui.min.js"> </script>
+    <script>
+        function onDataUpload(fileElemId, data_type, successCallbackMethod, failCallbackMethod ) {
+            var fileSelect = document.getElementById(fileElemId);
+            var files = fileSelect.files;
+            var file = files[0];
+
+            var parts = file.name.split(".");
+            /* */
+            if(! parts[parts.length - 1].toLowerCase().match('xls.*')) {
+                alert("This can't be uploaded. Please upload xls or xlsx file.");
+                return;
+            }
+
+            var maxSize = 5*1024*1024;
+            if(file.size > maxSize) {
+                alert("File size exceeds maximum allowed size of 5MB.");
+                return;
+            }
+            var formdata = new FormData();
+            formdata.append(fileElemId, file, file.name);
+
+            $.ajax( {
+                url: '/app/upload/' + data_type,
+                type: 'POST',
+                data: formdata,
+                async: true,
+                contentType: false,
+                enctype: 'multipart/form-data',
+                processData: false,
+                success: successCallbackMethod,
+                error: failCallbackMethod
+            } );
+        }
+
+        function onVehicleDataUpload() {
+            onDataUpload('file',  'vehicle_data', onVehicleDataUploadSuccess, onVehicleDataUploadFailure);
+        }
+
+        function onVehicleDataUploadSuccess(response) {
+            if(response.length == 0) {
+                return;
+            }
+
+            var htmlstr = "<table style='border:1px'> <tr>" +
+                            "<td><span>Reg.Num</span></td><td><span>count</span></td><td><span>Message</span></td></tr>";
+            for(var i=0; i<response.length; i++) {
+                var obj = response[i];
+                var vehicle = obj.vehicle;
+                var message = obj.message;
+                htmlstr += "<tr><td><span>"+ vehicle.registrationNumber + "</span></td> " +
+                                "<td><span>" + vehicle.capacity + "</span></td>" +
+                                 " <td><span>" + message + "</span></td> </tr>"
+            }
+            htmlstr += "</table>";
+            var divelem = document.getElementById("vehicle_data_error");
+            divelem.innerHTML = htmlstr;
+        }
+
+        function onVehicleDataUploadFailure(error) {
+            alert("error uploading vehicle data file. error:" + JSON.stringify(error));
+            var divelem = document.getElementById("vehicle_data_error");
+            divelem.innerHTML = "<span>" +  JSON.stringify(error) + "</span>";
+        }
+
+        function onPickupPointsDataUpload() {
+            onDataUpload('pickuppoints_file',  'pickup_points_data', onPickupPointsDataUploadSuccess, onPickupPointsDataUploadFailure);
+        }
+
+        function onPickupPointsDataUploadSuccess(response) {
+            if(response.length == 0) {
+                return;
+            }
+
+            var htmlstr = "<table style='border:1px'> <tr>" +
+                            "<td><span>Address</span></td><td><span>num_students</span></td><td><span>Message</span></td></tr>";
+            for(var i=0; i<response.length; i++) {
+                var obj = response[i];
+                var busStop = obj.busStop;
+                var message = obj.message;
+                htmlstr += "<tr><td><span>"+ busStop.address + "</span></td> " +
+                                "<td><span>" + busStop.numStudents + "</span></td>" +
+                                 " <td><span>" + message + "</span></td> </tr>"
+            }
+            htmlstr += "</table>";
+            var divelem = document.getElementById("pickup_points_data_error");
+            divelem.innerHTML = htmlstr;
+        }
+
+        function onPickupPointsDataUploadFailure(error) {
+            alert("error uploading pickup points file. error:" + JSON.stringify(error));
+            var divelem = document.getElementById("pickup_points_data_error");
+            divelem.innerHTML = "<span>" +  JSON.stringify(error) + "</span>";
+        }
+    </script>
+</head>
+<body>
+    <form name="upload_vehicle_data_form" method="post" enctype="multipart/form-data">
+        <br/>
+        <div>
+            <label for="file">Choose vehicle data file:</label>
+            <input type="file" id="file" name="file" multiple>
+            <div>
+                <input id="vehicle_data_upload" type="button" name="vehicle_data_upload" onclick="onVehicleDataUpload();" value="Upload" />
+            </div>
+            <br/>
+            <div id="vehicle_data_error">
+
+            </div>
+        </div>
+    </form>
+        <br/>
+        <br/>
+    <form name="upload_pickupoints_form" method="post" enctype="multipart/form-data">
+        <div>
+            <label for="pickuppoints_file">Choose Pickup Points data file:</label>
+            <input type="file" id="pickuppoints_file" name="pickuppoints_file" multiple>
+            <div>
+                <input id="pickpoints_data_upload" type="button" name="Upload" onclick="onPickupPointsDataUpload();" value="Upload" />
+            </div>
+            <br/>
+            <div id="pickup_points_data_error">
+
+            </div>
+        </div>
+    </form>
+
+</body>
+</html>

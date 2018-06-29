@@ -1,0 +1,217 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>jstech.edu</groupId>
+    <artifactId>busbee</artifactId>
+    <packaging>pom</packaging>
+    <version>1.0-SNAPSHOT</version>
+    <modules>
+        <module>controller</module>
+        <module>common</module>
+        <module>service</module>
+    </modules>
+
+    <properties>
+        <sockjs.client.version>1.0.2</sockjs.client.version>
+        <stomp.websocket.version>2.3.3-1</stomp.websocket.version>
+        <webjars.bootstrap.version>3.3.7</webjars.bootstrap.version>
+        <webjars.jquery.version>3.1.0</webjars.jquery.version>
+        <webjars.locator.version>0.32</webjars.locator.version>
+        <webjars.jscookie.version>2.1.4</webjars.jscookie.version>
+        <slf4j.version>1.7.21</slf4j.version>
+        <log4j2.version>2.8.1</log4j2.version>
+        <apache.poi.version>3.17</apache.poi.version>
+        <spring.boot.version>2.0.2.RELEASE</spring.boot.version>
+        <spring.framework.version>5.0.6.RELEASE</spring.framework.version>
+        <spring.security.core.version>4.2.3.RELEASE</spring.security.core.version>
+        <spring.security.oauth.version>2.2.1.RELEASE</spring.security.oauth.version>
+        <mysql.driver.version>6.0.6</mysql.driver.version>
+        <postgressql.driver.version>42.2.1</postgressql.driver.version>
+        <jsprit.version>1.7.2</jsprit.version>
+        <google.http-client.version>1.23.0</google.http-client.version>
+        <google.maps.version>0.2.5</google.maps.version>
+        <jackson.version>2.9.2</jackson.version>
+        <guava.version>25.0-jre</guava.version>
+        <awsjavasdk.version>1.11.333</awsjavasdk.version>
+
+    </properties>
+
+    <dependencyManagement>
+        <dependencies>
+
+            <!-- SPRING dependencies -->
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-starter-websocket</artifactId>
+                <version>${spring.boot.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-starter-security</artifactId>
+                <version>${spring.boot.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>org.springframework</groupId>
+                        <artifactId>spring-expression</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-starter-quartz</artifactId>
+                <version>${spring.boot.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-tx</artifactId>
+                <version>${spring.framework.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-jdbc</artifactId>
+                <version>${spring.framework.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-starter-test</artifactId>
+                <version>${spring.boot.version}</version>
+                <scope>test</scope>
+            </dependency>
+
+            <!-- MySQL Driver -->
+            <!--<dependency>
+                <groupId>mysql</groupId>
+                <artifactId>mysql-connector-java</artifactId>
+                <version>${mysql.driver.version}</version>
+            </dependency>-->
+
+            <!-- POSTGRES SQL Driver  https://mvnrepository.com/artifact/org.postgresql/postgresql -->
+            <dependency>
+                <groupId>org.postgresql</groupId>
+                <artifactId>postgresql</artifactId>
+                <version>${postgressql.driver.version}</version>
+            </dependency>
+
+            <!-- UI dependencies -->
+            <dependency>
+                <groupId>org.webjars</groupId>
+                <artifactId>webjars-locator</artifactId>
+                <version>${webjars.locator.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.webjars</groupId>
+                <artifactId>sockjs-client</artifactId>
+                <version>${sockjs.client.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.webjars</groupId>
+                <artifactId>stomp-websocket</artifactId>
+                <version>${stomp.websocket.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.webjars</groupId>
+                <artifactId>bootstrap</artifactId>
+                <version>${webjars.bootstrap.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.webjars</groupId>
+                <artifactId>jquery</artifactId>
+                <version>${webjars.jquery.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.webjars</groupId>
+                <artifactId>js-cookie</artifactId>
+                <version>${webjars.jscookie.version}</version>
+            </dependency>
+
+            <!-- GOOGLE dependencies -->
+            <dependency>
+                <groupId>com.google.maps</groupId>
+                <artifactId>google-maps-services</artifactId>
+                <version>${google.maps.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.google.http-client</groupId>
+                <artifactId>google-http-client</artifactId>
+                <version>${google.http-client.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.google.http-client</groupId>
+                <artifactId>google-http-client-jackson2</artifactId>
+                <version>${google.http-client.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>com.fasterxml.jackson.core</groupId>
+                        <artifactId>jackson-core</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+
+            <!-- Jackson -->
+            <dependency>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-databind</artifactId>
+                <version>${jackson.version}</version>
+            </dependency>
+
+            <!-- apache poi -->
+            <dependency>
+                <groupId>org.apache.poi</groupId>
+                <artifactId>poi</artifactId>
+                <version>${apache.poi.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.poi</groupId>
+                <artifactId>poi-ooxml</artifactId>
+                <version>${apache.poi.version}</version>
+            </dependency>
+
+            <!-- jsprit - vehicle route optimization tool -->
+            <dependency>
+                <groupId>com.graphhopper</groupId>
+                <artifactId>jsprit-core</artifactId>
+                <version>${jsprit.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.graphhopper</groupId>
+                <artifactId>jsprit-analysis</artifactId>
+                <version>${jsprit.version}</version>
+            </dependency>
+
+            <!-- guava -->
+            <dependency>
+                <groupId>com.google.guava</groupId>
+                <artifactId>guava</artifactId>
+                <version>${guava.version}</version>
+            </dependency>
+
+            <!-- AWS sdk dependencies -->
+            <dependency>
+                <groupId>com.amazonaws</groupId>
+                <artifactId>aws-java-sdk</artifactId>
+                <version>${awsjavasdk.version}</version>
+            </dependency>
+
+
+        </dependencies>
+    </dependencyManagement>
+
+    <build>
+        <plugins>
+            <plugin>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.7.0</version>
+                <configuration>
+                    <source>1.8</source>
+                    <target>1.8</target>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>

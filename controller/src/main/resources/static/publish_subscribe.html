@@ -1,0 +1,78 @@
+<html>
+<head>
+    <script type="text/javascript" src="js/jquery-1.11.2.js"> </script>
+    <script type="text/javascript" src="js/jquery-ui.min.js"> </script>
+
+    <script src="js/sockjs.min.js"></script>
+    <script src="js/stomp.min.js"></script>
+</head>
+
+<body>
+<span>PUBLISH: </span>
+<br/>
+    <span> Connection Status: </span><span id="conn_status"></span>
+    <br/>
+
+    <span> send count: </span><span id="send_count"></span>
+    <br/>
+    <span> sent Coordinates:</span><span id="send_coord"></span>
+    <br/>
+    <br/>
+
+<span>SUBSCRIBE: </span>
+<br/>
+    <span> receive count: </span><span id="receive_count"></span>
+    <br/>
+    <span> receive Coordinates:</span><span id="receive_coord"></span>
+    <br/>
+
+<script>
+    var sendcount = 0;
+    var sendposition = {};
+
+    var receivecount = 0;
+    var receiveposition = {};
+
+    var latitude = 18.123456;
+    var longitude = 78.098765;
+
+    function connect() {
+        var socket = new SockJS('/transportws');
+        stompClient = Stomp.over(socket);
+        stompClient.connect({}, function (frame) {
+            console.log('Connected: ' + frame);
+            stompClient.subscribe('/subscribe/position', function (position) {
+                showPosition(position.body);
+            });
+        });
+    }
+
+    function showPosition(position_txt) {
+        receivecount = receivecount + 1;
+        document.getElementById("receive_coord").innerHTML = position_txt;
+        document.getElementById("receive_count").innerHTML = receivecount;
+    }
+
+    function sendPosition() {
+        sendcount = sendcount + 1;
+        latitude = latitude + 0.000001;
+        longitude = longitude + 0.000001;
+
+        var tempobj = {};
+        tempobj.busId = 1;
+        tempobj.latitude = latitude;
+        tempobj.longitude = longitude;
+        var tempobjtxt = JSON.stringify(tempobj);
+
+        document.getElementById("send_coord").innerHTML = tempobjtxt;
+        document.getElementById("send_count").innerHTML = sendcount;
+
+        stompClient.send("/publish/busposition", {}, JSON.stringify(tempobj));
+    }
+
+    connect();
+    setInterval(sendPosition, 10000);
+</script>
+</body>
+
+</html>

@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{dd-MM-yyyy HH:mm:ss.SSS} %magenta([%thread]) %highlight(%-5level) %logger{36}.%M - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="NOTIFY-SUPPORT" class="jstech.edu.transportmodel.CustomErrorAppender">
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>ERROR</level>
+        </filter>
+    </appender>
+
+    <appender name="SAVE-TO-FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>logs\busbee.log</file>
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <Pattern>%d{dd-MM-yyyy HH:mm:ss.SSS} [%thread] %-5level %logger{36}.%M - %msg%n</Pattern>
+        </encoder>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>logs\archived\busbee_%d{dd-MM-yyyy}_%i.log</fileNamePattern>
+            <maxFileSize>10MB</maxFileSize>
+            <maxHistory>10</maxHistory>
+            <totalSizeCap>100MB</totalSizeCap>
+        </rollingPolicy>
+    </appender>
+
+    <appender name="REQUEST-RESPONSE-TO-FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>logs\busbee_request_response.log</file>
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <Pattern>%d{dd-MM-yyyy HH:mm:ss.SSS} [%thread] %-5level %logger{36}.%M - %msg%n</Pattern>
+        </encoder>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>logs\archived\busbee_request_response_%d{dd-MM-yyyy}_%i.log</fileNamePattern>
+            <maxFileSize>10MB</maxFileSize>
+            <maxHistory>10</maxHistory>
+            <totalSizeCap>100MB</totalSizeCap>
+        </rollingPolicy>
+    </appender>
+
+    <springProfile name="dev">
+        <logger name="jstech.edu.transportmodel.RequestResponseLoggingFilter" additivity="false">
+            <level value="INFO" />
+            <appender-ref ref="REQUEST-RESPONSE-TO-FILE" />
+        </logger>
+
+        <root level="debug">
+            <appender-ref ref="STDOUT" />
+            <appender-ref ref="SAVE-TO-FILE" />
+            <appender-ref ref="NOTIFY-SUPPORT" />
+        </root>
+    </springProfile>
+
+    <springProfile name="prod">
+        <root level="info">
+            <appender-ref ref="SAVE-TO-FILE" />
+            <appender-ref ref="NOTIFY-SUPPORT" />
+        </root>
+    </springProfile>
+</configuration>
